@@ -51,7 +51,7 @@
 	var MusicBox = __webpack_require__(170);
 	
 	window.onload = function () {
-	  ReactDom.render(React.createElement(MusicBox, null), document.getElementById('app'));
+	  ReactDom.render(React.createElement(MusicBox, { url: 'http://localhost:5000/uploads' }), document.getElementById('app'));
 	};
 
 /***/ },
@@ -21011,18 +21011,41 @@
 /* 170 */
 /***/ function(module, exports, __webpack_require__) {
 
-	'use strict';
+	"use strict";
 	
 	var React = __webpack_require__(1);
 	
 	var MusicBox = React.createClass({
-	  displayName: 'MusicBox',
+	  displayName: "MusicBox",
+	
+	  getInitialState: function getInitialState() {
+	    return { songs: [] };
+	  },
+	
+	  componentDidMount: function componentDidMount() {
+	    this.getData(this.props.url);
+	  },
+	
+	  getData: function getData(url) {
+	    var request = new XMLHttpRequest();
+	    request.open("Get", url);
+	    request.onload = function () {
+	      if (request.status === 200) {
+	        var data = JSON.parse(request.responseText);
+	        console.log(data);
+	        // this.setState({ songs = data })
+	      } else {
+	        console.log("hi");
+	      }
+	    };
+	    request.send(null);
+	  },
 	
 	  render: function render() {
 	    return React.createElement(
-	      'h1',
+	      "h1",
 	      null,
-	      'MusicBox'
+	      "MusicBox"
 	    );
 	  }
 	});

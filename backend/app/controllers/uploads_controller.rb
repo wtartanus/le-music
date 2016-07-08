@@ -28,6 +28,7 @@ class UploadsController < ApplicationController
   end
 
   def index
-    @uploads = Upload.all
+    uploads = Upload.all
+    render json: uploads
   end
 end
