@@ -1,4 +1,5 @@
 var React = require('react');
+var AddSongBox = require('./AddSongBox.jsx');
 
 var MusicBox = React.createClass({
   getInitialState: function() {
@@ -17,15 +18,33 @@ var MusicBox = React.createClass({
          var data = JSON.parse(request.responseText);
          console.log(data)
          // this.setState({ songs = data })
-      } else {
-        console.log("hi")
-      }
+      } 
     }
     request.send(null)
   },
 
+  sendData: function(url,song) {
+    console.log( song )
+   var request = new XMLHttpRequest();
+   request.open("POST", url);
+   // request.setRequestHeader("Content-type", "application/json; charset=UTF-8");
+   request.onload = function() {
+     if(request.status === 200 ) {
+        console.log( 'yeeeehhaaaaaa')
+     } 
+   }
+   // var blob = new Blob([song], {type: 'text/plain'});
+
+   request.send( song );
+  },
+
   render: function() {
-    return <h1>MusicBox</h1>
+    return (
+      <div>
+        <h1>MusicBox</h1>
+        <AddSongBox sendSong={this.sendData} url={this.props.url} />
+      </div>
+      )
   }
 });
 

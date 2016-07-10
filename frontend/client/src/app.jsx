@@ -4,7 +4,7 @@ var MusicBox = require('./components/MusicBox.jsx');
 
 window.onload = function() {
   ReactDom.render(
-    <MusicBox url="http://localhost:5000/uploads" />,
+    <MusicBox url="http://localhost:5000/uploads" gifSrc="ajax-loader.gif"/>,
     document.getElementById('app')    
     );
 }
