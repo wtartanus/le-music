@@ -51,7 +51,7 @@
 	var MusicBox = __webpack_require__(170);
 	
 	window.onload = function () {
-	  ReactDom.render(React.createElement(MusicBox, { url: 'http://localhost:5000/uploads', gifSrc: 'ajax-loader.gif' }), document.getElementById('app'));
+	  ReactDom.render(React.createElement(MusicBox, { url: 'http://localhost:5000/uploads' }), document.getElementById('app'));
 	};
 
 /***/ },
@@ -21040,19 +21040,14 @@
 	    request.send(null);
 	  },
 	
-	  sendData: function sendData(url, song) {
-	    console.log(song);
+	  sendData: function sendData(url, info) {
 	    var request = new XMLHttpRequest();
 	    request.open("POST", url);
-	    // request.setRequestHeader("Content-type", "application/json; charset=UTF-8");
 	    request.onload = function () {
-	      if (request.status === 200) {
-	        console.log('yeeeehhaaaaaa');
-	      }
+	      if (request.status === 200) {}
 	    };
-	    // var blob = new Blob([song], {type: 'text/plain'});
 	
-	    request.send(song);
+	    request.send(JSON.stringify(info));
 	  },
 	
 	  render: function render() {
@@ -21064,7 +21059,7 @@
 	        null,
 	        'MusicBox'
 	      ),
-	      React.createElement(AddSongBox, { sendSong: this.sendData, url: this.props.url })
+	      React.createElement(AddSongBox, { sendInfo: this.sendData, url: this.props.url })
 	    );
 	  }
 	});
@@ -21091,6 +21086,7 @@
 	
 	  handleSubmit: function handleSubmit(e) {
 	    e.preventDefault();
+	    this.getInfo();
 	    var file = document.getElementById("file").files[0];
 	    var params = { Key: file.name, ContentType: file.type, Body: file };
 	    var display = document.getElementById("display-progress");
@@ -21107,6 +21103,26 @@
 	    // return false;
 	  },
 	
+	  getInfo: function getInfo() {
+	    var artist = document.getElementById('artist');
+	    var album = document.getElementById('album');
+	    var genre = document.getElementById('genre');
+	    var title = document.getElementById('title');
+	    var file = document.getElementById('file').files[0];
+	
+	    var info = {
+	      artist: artist.value,
+	      album: album.value,
+	      genre: genre.value,
+	      title: title.value,
+	      linkName: file.name
+	    };
+	
+	    console.log(info);
+	
+	    this.props.sendInfo(this.props.url, info);
+	  },
+	
 	  render: function render() {
 	    return React.createElement(
 	      'div',
@@ -21115,6 +21131,30 @@
 	        'form',
 	        { id: 'add-song', encType: 'multipart/form-data', onSubmit: this.handleSubmit },
 	        React.createElement('input', { type: 'file', id: 'file', name: 'name' }),
+	        React.createElement(
+	          'label',
+	          { htmlFor: 'artist' },
+	          'Artist:'
+	        ),
+	        React.createElement('input', { type: 'text', id: 'artist', name: 'artist' }),
+	        React.createElement(
+	          'label',
+	          { htmlFor: 'album' },
+	          'Album:'
+	        ),
+	        React.createElement('input', { type: 'text', id: 'album', name: 'album' }),
+	        React.createElement(
+	          'label',
+	          { htmlFor: 'genret' },
+	          'Genre:'
+	        ),
+	        React.createElement('input', { type: 'text', id: 'genre', name: 'genre' }),
+	        React.createElement(
+	          'label',
+	          { htmlFor: 'title' },
+	          'Title:'
+	        ),
+	        React.createElement('input', { type: 'text', id: 'title', name: 'title' }),
 	        React.createElement(
 	          'button',
 	          { type: 'submit' },

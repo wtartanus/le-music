@@ -10,6 +10,7 @@ var AddSongBox = React.createClass({
 
   handleSubmit: function(e) {
     e.preventDefault()
+    this.getInfo();
     var file = document.getElementById("file").files[0];
     var params = {Key: file.name, ContentType: file.type, Body: file};
     var display = document.getElementById("display-progress");
@@ -27,11 +28,40 @@ var AddSongBox = React.createClass({
   // return false;
   },
 
+  getInfo: function() {
+   var artist = document.getElementById('artist');
+   var album = document.getElementById('album');
+   var genre = document.getElementById('genre');
+   var title = document.getElementById('title');
+   var file = document.getElementById('file').files[0];
+
+   var info = {
+    artist: artist.value,
+    album: album.value,
+    genre: genre.value,
+    title: title.value,
+    linkName: file.name
+   }
+
+   console.log(info)
+
+   this.props.sendInfo(this.props.url, info )
+
+  },
+
   render: function() {
     return (
       <div>
         <form id="add-song" encType="multipart/form-data" onSubmit={this.handleSubmit}>
           <input type="file" id="file" name="name" />
+          <label htmlFor="artist">Artist:</label>
+          <input type="text" id="artist" name="artist" />
+          <label htmlFor="album">Album:</label>
+          <input type="text" id="album" name="album" />
+          <label htmlFor="genret">Genre:</label>
+          <input type="text" id="genre" name="genre" />
+          <label htmlFor="title">Title:</label>
+          <input type="text" id="title" name="title" />
           <button type="submit">Add Song</button>
         </form>
         <div id="display-progress">
