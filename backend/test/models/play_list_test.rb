@@ -1,6 +1,6 @@
 require 'test_helper'
 
-class UploadTest < ActiveSupport::TestCase
+class PlayListTest < ActiveSupport::TestCase
   # test "the truth" do
   #   assert true
   # end
