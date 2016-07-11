@@ -1,26 +1,11 @@
 var React = require('react');
 var AddSongBox = require('./AddSongBox.jsx');
+var SignOut = require('./authentication/SignOut.jsx');
+var PlayerBox = require('./PlayerBox.jsx');
 
 var MusicBox = React.createClass({
   getInitialState: function() {
-    return { songs: [] }
-  },
-
-  componentDidMount: function() {
-    this.getData(this.props.url)
-  },
-
-  getData: function(url) {
-    var request = new XMLHttpRequest();
-    request.open("Get", url);
-    request.onload = function() {
-      if(request.status === 200 ) {
-         var data = JSON.parse(request.responseText);
-         console.log(data)
-         // this.setState({ songs = data })
-      } 
-    }
-    request.send(null)
+     return {user: this.props.currentUser}
   },
 
   sendData: function(url,info) {
@@ -39,7 +24,12 @@ var MusicBox = React.createClass({
     return (
       <div>
         <h1>MusicBox</h1>
+        <div>
+         <h4> Welcome {this.state.currentUser}</h4>
+         <SignOut url={this.props.url + "users/sign_out.json"} onSignOut={this.props.resetUser}></SignOut>
+        </div>
         <AddSongBox sendInfo={this.sendData} url={this.props.url} />
+        <PlayerBox url={this.props.url}/>
       </div>
       )
   }

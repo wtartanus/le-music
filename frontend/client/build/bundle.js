@@ -49,9 +49,10 @@
 	var React = __webpack_require__(1);
 	var ReactDom = __webpack_require__(33);
 	var MusicBox = __webpack_require__(170);
+	var LoginBox = __webpack_require__(180);
 	
 	window.onload = function () {
-	  ReactDom.render(React.createElement(MusicBox, { url: 'http://localhost:5000/uploads' }), document.getElementById('app'));
+	  ReactDom.render(React.createElement(LoginBox, { url: 'http://localhost:5000/' }), document.getElementById('app'));
 	};
 
 /***/ },
@@ -21015,29 +21016,14 @@
 	
 	var React = __webpack_require__(1);
 	var AddSongBox = __webpack_require__(171);
+	var SignOut = __webpack_require__(178);
+	var PlayerBox = __webpack_require__(179);
 	
 	var MusicBox = React.createClass({
 	  displayName: 'MusicBox',
 	
 	  getInitialState: function getInitialState() {
-	    return { songs: [] };
-	  },
-	
-	  componentDidMount: function componentDidMount() {
-	    this.getData(this.props.url);
-	  },
-	
-	  getData: function getData(url) {
-	    var request = new XMLHttpRequest();
-	    request.open("Get", url);
-	    request.onload = function () {
-	      if (request.status === 200) {
-	        var data = JSON.parse(request.responseText);
-	        console.log(data);
-	        // this.setState({ songs = data })
-	      }
-	    };
-	    request.send(null);
+	    return { user: this.props.currentUser };
 	  },
 	
 	  sendData: function sendData(url, info) {
@@ -21059,7 +21045,19 @@
 	        null,
 	        'MusicBox'
 	      ),
-	      React.createElement(AddSongBox, { sendInfo: this.sendData, url: this.props.url })
+	      React.createElement(
+	        'div',
+	        null,
+	        React.createElement(
+	          'h4',
+	          null,
+	          ' Welcome ',
+	          this.state.currentUser
+	        ),
+	        React.createElement(SignOut, { url: this.props.url + "users/sign_out.json", onSignOut: this.props.resetUser })
+	      ),
+	      React.createElement(AddSongBox, { sendInfo: this.sendData, url: this.props.url }),
+	      React.createElement(PlayerBox, { url: this.props.url })
 	    );
 	  }
 	});
@@ -23039,6 +23037,530 @@
 	/* WEBPACK VAR INJECTION */(function(__webpack_amd_options__) {module.exports = __webpack_amd_options__;
 	
 	/* WEBPACK VAR INJECTION */}.call(exports, {}))
+
+/***/ },
+/* 178 */
+/***/ function(module, exports, __webpack_require__) {
+
+	"use strict";
+	
+	var React = __webpack_require__(1);
+	
+	var SignOut = React.createClass({
+	  displayName: "SignOut",
+	
+	  signOut: function signOut(e) {
+	    e.preventDefault();
+	    var request = new XMLHttpRequest();
+	    request.open("DELETE", this.props.url);
+	    request.setRequestHeader("Content-Type", "application/json");
+	    request.withCredentials = true;
+	    request.onload = function () {
+	      console.log('signed out', request.status);
+	      if (request.status === 204) {
+	        this.props.onSignOut();
+	      } else if (request.status === 401) {}
+	    }.bind(this);
+	    request.send(null);
+	  },
+	
+	  render: function render() {
+	    return React.createElement(
+	      "button",
+	      { onClick: this.signOut },
+	      "Sign Out"
+	    );
+	  }
+	});
+	
+	module.exports = SignOut;
+
+/***/ },
+/* 179 */
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict';
+	
+	var React = __webpack_require__(1);
+	
+	var PlayerBox = React.createClass({
+	  displayName: 'PlayerBox',
+	
+	  getInitialState: function getInitialState() {
+	    return { currentSong: null, currentSongIndex: null, currentPlaylist: null, playlists: null };
+	  },
+	
+	  componentDidMount: function componentDidMount() {
+	
+	    this.we();
+	    var player = document.getElementById('player');
+	    var src = player.childNodes[0];
+	    player.addEventListener('ended', function () {
+	      var size = this.state.playlists[this.state.currentPlaylist].songs.length;
+	      console.log(size);
+	      var i = this.state.currentSongIndex;
+	      i += 1;
+	      if (i === size) {
+	        i = 0;
+	      }
+	      this.setState({ currentSongIndex: i });
+	      var song = this.state.playlists[this.state.currentPlaylist].songs[i].url;
+	      this.setState({ currentSong: song });
+	      player.load();
+	      player.play();
+	    }.bind(this));
+	  },
+	
+	  we: function we() {
+	    console.log("hi");
+	    var request = new XMLHttpRequest();
+	    request.open("GET", this.props.url + "/play_lists.json");
+	    request.setRequestHeader("Content-Type", "application/json");
+	    request.withCredentials = true;
+	    request.onload = function () {
+	      if (request.status === 200) {
+	        var playlists = JSON.parse(request.responseText);
+	        console.log("got it", playlists);
+	        this.setState({ playlists: playlists });
+	        this.setState({ currentSongIndex: 0 });
+	        this.setState({ currentSong: playlists[0].songs[0].url });
+	        this.setState({ currentPlaylist: 0 });
+	        var player = document.getElementById('player');
+	        player.load();
+	        player.play();
+	      } else if (request.status === 401) {
+	        console.log("we");
+	      }
+	    }.bind(this);
+	
+	    request.send(null);
+	  },
+	
+	  render: function render() {
+	    return React.createElement(
+	      'div',
+	      null,
+	      React.createElement(
+	        'h3',
+	        null,
+	        'Player Box'
+	      ),
+	      React.createElement(
+	        'audio',
+	        { controls: true, preload: 'auto', id: 'player' },
+	        React.createElement('source', { src: this.state.currentSong }),
+	        'Your browser does not support the audio element.'
+	      )
+	    );
+	  }
+	});
+	
+	module.exports = PlayerBox;
+
+/***/ },
+/* 180 */
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict';
+	
+	var React = __webpack_require__(1);
+	var SignIn = __webpack_require__(181);
+	var SignOut = __webpack_require__(178);
+	var SignUp = __webpack_require__(186);
+	var MusicBox = __webpack_require__(170);
+	
+	var LoginBox = React.createClass({
+	  displayName: 'LoginBox',
+	
+	  getInitialState: function getInitialState() {
+	    return { currentUser: null, playLists: null };
+	  },
+	
+	  setUser: function setUser(user) {
+	    this.setState({ currentUser: user });
+	    this.setState({ playLists: user.playlists });
+	  },
+	
+	  resetUser: function resetUser() {
+	    this.setState({ currentUser: null });
+	    this.setState({ playLists: null });
+	  },
+	
+	  render: function render() {
+	    var mainDiv = React.createElement(
+	      'div',
+	      null,
+	      React.createElement(
+	        'h4',
+	        null,
+	        'Pleas Sign In/Up'
+	      ),
+	      React.createElement(SignIn, { url: this.props.url + "users/sign_in.json", onSignIn: this.setUser }),
+	      React.createElement(SignUp, { url: this.props.url + "users.json", onSignUp: this.setUser })
+	    );
+	    if (this.state.currentUser) {
+	      mainDiv = React.createElement(MusicBox, { currentUser: this.state.currentUser, playLists: this.state.playLists, resetUser: this.resetUser, url: this.props.url });
+	    }
+	    return React.createElement(
+	      'div',
+	      null,
+	      mainDiv
+	    );
+	  }
+	});
+	
+	module.exports = LoginBox;
+
+/***/ },
+/* 181 */
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict';
+	
+	var React = __webpack_require__(1);
+	var LinkedStateMixin = __webpack_require__(182);
+	
+	var SignIn = React.createClass({
+	  displayName: 'SignIn',
+	
+	  mixins: [LinkedStateMixin],
+	
+	  getInitialState: function getInitialState() {
+	    return { email: "", password: "" };
+	  },
+	
+	  signIn: function signIn(e) {
+	    e.preventDefault();
+	    var request = new XMLHttpRequest();
+	    request.open("POST", this.props.url);
+	    request.setRequestHeader("Content-Type", "application/json");
+	    request.withCredentials = true;
+	    request.onload = function () {
+	      if (request.status === 201) {
+	        var user = JSON.parse(request.responseText);
+	        console.log('user', user);
+	        this.props.onSignIn(user);
+	      } else if (request.status === 401) {}
+	    }.bind(this);
+	    var data = {
+	      user: {
+	        email: this.state.email,
+	        password: this.state.password
+	      }
+	    };
+	    request.send(JSON.stringify(data));
+	  },
+	
+	  render: function render() {
+	    return React.createElement(
+	      'form',
+	      { onSubmit: this.signIn },
+	      React.createElement('input', { type: 'text', valueLink: this.linkState('email'), placeholder: 'Email' }),
+	      React.createElement('input', { type: 'password', valueLink: this.linkState('password'), placeholder: 'Password' }),
+	      React.createElement(
+	        'button',
+	        null,
+	        '  Sign In '
+	      )
+	    );
+	  }
+	});
+	
+	module.exports = SignIn;
+
+/***/ },
+/* 182 */
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict';
+	
+	module.exports = __webpack_require__(183);
+
+/***/ },
+/* 183 */
+/***/ function(module, exports, __webpack_require__) {
+
+	/**
+	 * Copyright 2013-present, Facebook, Inc.
+	 * All rights reserved.
+	 *
+	 * This source code is licensed under the BSD-style license found in the
+	 * LICENSE file in the root directory of this source tree. An additional grant
+	 * of patent rights can be found in the PATENTS file in the same directory.
+	 *
+	 * @providesModule LinkedStateMixin
+	 */
+	
+	'use strict';
+	
+	var ReactLink = __webpack_require__(184);
+	var ReactStateSetters = __webpack_require__(185);
+	
+	/**
+	 * A simple mixin around ReactLink.forState().
+	 * See https://facebook.github.io/react/docs/two-way-binding-helpers.html
+	 */
+	var LinkedStateMixin = {
+	  /**
+	   * Create a ReactLink that's linked to part of this component's state. The
+	   * ReactLink will have the current value of this.state[key] and will call
+	   * setState() when a change is requested.
+	   *
+	   * @param {string} key state key to update. Note: you may want to use keyOf()
+	   * if you're using Google Closure Compiler advanced mode.
+	   * @return {ReactLink} ReactLink instance linking to the state.
+	   */
+	  linkState: function linkState(key) {
+	    return new ReactLink(this.state[key], ReactStateSetters.createStateKeySetter(this, key));
+	  }
+	};
+	
+	module.exports = LinkedStateMixin;
+
+/***/ },
+/* 184 */
+/***/ function(module, exports, __webpack_require__) {
+
+	/**
+	 * Copyright 2013-present, Facebook, Inc.
+	 * All rights reserved.
+	 *
+	 * This source code is licensed under the BSD-style license found in the
+	 * LICENSE file in the root directory of this source tree. An additional grant
+	 * of patent rights can be found in the PATENTS file in the same directory.
+	 *
+	 * @providesModule ReactLink
+	 */
+	
+	'use strict';
+	
+	/**
+	 * ReactLink encapsulates a common pattern in which a component wants to modify
+	 * a prop received from its parent. ReactLink allows the parent to pass down a
+	 * value coupled with a callback that, when invoked, expresses an intent to
+	 * modify that value. For example:
+	 *
+	 * React.createClass({
+	 *   getInitialState: function() {
+	 *     return {value: ''};
+	 *   },
+	 *   render: function() {
+	 *     var valueLink = new ReactLink(this.state.value, this._handleValueChange);
+	 *     return <input valueLink={valueLink} />;
+	 *   },
+	 *   _handleValueChange: function(newValue) {
+	 *     this.setState({value: newValue});
+	 *   }
+	 * });
+	 *
+	 * We have provided some sugary mixins to make the creation and
+	 * consumption of ReactLink easier; see LinkedValueUtils and LinkedStateMixin.
+	 */
+	
+	var React = __webpack_require__(2);
+	
+	/**
+	 * Deprecated: An an easy way to express two-way binding with React. 
+	 * See https://facebook.github.io/react/docs/two-way-binding-helpers.html
+	 *
+	 * @param {*} value current value of the link
+	 * @param {function} requestChange callback to request a change
+	 */
+	function ReactLink(value, requestChange) {
+	  this.value = value;
+	  this.requestChange = requestChange;
+	}
+	
+	/**
+	 * Creates a PropType that enforces the ReactLink API and optionally checks the
+	 * type of the value being passed inside the link. Example:
+	 *
+	 * MyComponent.propTypes = {
+	 *   tabIndexLink: ReactLink.PropTypes.link(React.PropTypes.number)
+	 * }
+	 */
+	function createLinkTypeChecker(linkType) {
+	  var shapes = {
+	    value: linkType === undefined ? React.PropTypes.any.isRequired : linkType.isRequired,
+	    requestChange: React.PropTypes.func.isRequired
+	  };
+	  return React.PropTypes.shape(shapes);
+	}
+	
+	ReactLink.PropTypes = {
+	  link: createLinkTypeChecker
+	};
+	
+	module.exports = ReactLink;
+
+/***/ },
+/* 185 */
+/***/ function(module, exports) {
+
+	/**
+	 * Copyright 2013-present, Facebook, Inc.
+	 * All rights reserved.
+	 *
+	 * This source code is licensed under the BSD-style license found in the
+	 * LICENSE file in the root directory of this source tree. An additional grant
+	 * of patent rights can be found in the PATENTS file in the same directory.
+	 *
+	 * @providesModule ReactStateSetters
+	 */
+	
+	'use strict';
+	
+	var ReactStateSetters = {
+	  /**
+	   * Returns a function that calls the provided function, and uses the result
+	   * of that to set the component's state.
+	   *
+	   * @param {ReactCompositeComponent} component
+	   * @param {function} funcReturningState Returned callback uses this to
+	   *                                      determine how to update state.
+	   * @return {function} callback that when invoked uses funcReturningState to
+	   *                    determined the object literal to setState.
+	   */
+	  createStateSetter: function createStateSetter(component, funcReturningState) {
+	    return function (a, b, c, d, e, f) {
+	      var partialState = funcReturningState.call(component, a, b, c, d, e, f);
+	      if (partialState) {
+	        component.setState(partialState);
+	      }
+	    };
+	  },
+	
+	  /**
+	   * Returns a single-argument callback that can be used to update a single
+	   * key in the component's state.
+	   *
+	   * Note: this is memoized function, which makes it inexpensive to call.
+	   *
+	   * @param {ReactCompositeComponent} component
+	   * @param {string} key The key in the state that you should update.
+	   * @return {function} callback of 1 argument which calls setState() with
+	   *                    the provided keyName and callback argument.
+	   */
+	  createStateKeySetter: function createStateKeySetter(component, key) {
+	    // Memoize the setters.
+	    var cache = component.__keySetters || (component.__keySetters = {});
+	    return cache[key] || (cache[key] = _createStateKeySetter(component, key));
+	  }
+	};
+	
+	function _createStateKeySetter(component, key) {
+	  // Partial state is allocated outside of the function closure so it can be
+	  // reused with every call, avoiding memory allocation when this function
+	  // is called.
+	  var partialState = {};
+	  return function stateKeySetter(value) {
+	    partialState[key] = value;
+	    component.setState(partialState);
+	  };
+	}
+	
+	ReactStateSetters.Mixin = {
+	  /**
+	   * Returns a function that calls the provided function, and uses the result
+	   * of that to set the component's state.
+	   *
+	   * For example, these statements are equivalent:
+	   *
+	   *   this.setState({x: 1});
+	   *   this.createStateSetter(function(xValue) {
+	   *     return {x: xValue};
+	   *   })(1);
+	   *
+	   * @param {function} funcReturningState Returned callback uses this to
+	   *                                      determine how to update state.
+	   * @return {function} callback that when invoked uses funcReturningState to
+	   *                    determined the object literal to setState.
+	   */
+	  createStateSetter: function createStateSetter(funcReturningState) {
+	    return ReactStateSetters.createStateSetter(this, funcReturningState);
+	  },
+	
+	  /**
+	   * Returns a single-argument callback that can be used to update a single
+	   * key in the component's state.
+	   *
+	   * For example, these statements are equivalent:
+	   *
+	   *   this.setState({x: 1});
+	   *   this.createStateKeySetter('x')(1);
+	   *
+	   * Note: this is memoized function, which makes it inexpensive to call.
+	   *
+	   * @param {string} key The key in the state that you should update.
+	   * @return {function} callback of 1 argument which calls setState() with
+	   *                    the provided keyName and callback argument.
+	   */
+	  createStateKeySetter: function createStateKeySetter(key) {
+	    return ReactStateSetters.createStateKeySetter(this, key);
+	  }
+	};
+	
+	module.exports = ReactStateSetters;
+
+/***/ },
+/* 186 */
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict';
+	
+	var React = __webpack_require__(1);
+	var LinkedStateMixin = __webpack_require__(182);
+	
+	var SignUp = React.createClass({
+	  displayName: 'SignUp',
+	
+	  mixins: [LinkedStateMixin],
+	
+	  getInitialState: function getInitialState() {
+	    return { email: "", password: "", passwordConfirmation: "" };
+	  },
+	
+	  signIn: function signIn() {
+	    e.preventDefault();
+	    var request = new XMLHttpRequest();
+	    request.open("POST", this.props.url);
+	    request.setRequestHeader('Content-Type', 'application/json');
+	    request.withCredentials = true;
+	    request.onload = function () {
+	      if (request.status === 201) {
+	        var user = JSON.parse(request.responseText);
+	        this.props.SignUp(user);
+	      } else if (request.status === 401) {}
+	    }.bind(this);
+	    var data = {
+	      user: {
+	        email: this.state.email,
+	        password: this.state.password,
+	        password_confirmation: this.state.passwordConfirmation
+	      }
+	    };
+	    request.send(JSON.stringify(data));
+	  },
+	
+	  render: function render() {
+	    return React.createElement(
+	      'form',
+	      { onSubmit: this.signIn },
+	      React.createElement('input', { type: 'text', valueLink: this.linkState('email'), placeholder: 'Email' }),
+	      React.createElement('input', { type: 'password', valueLink: this.linkState('password'), placeholder: 'Password' }),
+	      React.createElement('input', { type: 'password', valueLink: this.linkState('passwordConfirmation'),
+	        placeholder: 'PasswordConfirmation' }),
+	      React.createElement(
+	        'button',
+	        { type: 'submit' },
+	        'Sign Up'
+	      )
+	    );
+	  }
+	
+	});
+	
+	module.exports = SignUp;
 
 /***/ }
 /******/ ]);
