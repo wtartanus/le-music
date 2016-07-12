@@ -22,12 +22,12 @@ componentDidMount: function() {
 
   },
 
-  componentWillUpdate: function() {
-  if(this.state.playlists && this.state.currentPlaylist) {
-    playListName = this.state.playlists[this.state.currentPlaylist].name
-    playList = this.state.playlists[this.state.currentPlaylist]
-  }
-  },
+  // componentWillUpdate: function() {
+  // if(this.state.playlists && this.state.currentPlaylist) {
+  //   playListName = this.state.playlists[this.state.currentPlaylist].name
+  //   playList = this.state.playlists[this.state.currentPlaylist]
+  // }
+  // },
 
   nextSong: function() {
      var src = player.childNodes[0]
@@ -62,7 +62,6 @@ componentDidMount: function() {
   },
 
   fetchPlaylists: function() {
-    console.log("hi")
     var request = new XMLHttpRequest();
     request.open("GET", this.props.url + "/play_lists.json")
     request.setRequestHeader("Content-Type", "application/json");
@@ -70,7 +69,6 @@ componentDidMount: function() {
     request.onload = function() {
      if(request.status === 200 ) {
        var playlists = JSON.parse(request.responseText);
-       console.log("got it", playlists);
        this.setState({playlists: playlists});
        this.setState({currentSongIndex: 0});
        this.setState({currentSong: playlists[0].songs[0].url});
@@ -82,7 +80,7 @@ componentDidMount: function() {
        player.load()
        player.play()
      } else if ( request.status === 401 ) {
-       console.log("we")
+  
      }  
     }.bind(this)
     
@@ -99,6 +97,22 @@ componentDidMount: function() {
      
      }.bind(this));
     return list;
+ },
+
+ changePlayList: function(e) {
+   var i = e.target.value;
+   this.setState({playlist: this.state.playlists[i].songs });
+   this.setState({currentPlaylist: i });
+   this.setState({playlistName: this.state.playlists[i].name });
+ },
+
+ getPlaylistsNames: function(playlists) {
+   var list = playlists.map(function(playlist,index) {
+     return <li key={playlist.name} onClick={this.changePlayList} value={index}>
+     {playlist.name}</li>
+
+   }.bind(this));
+   return list
  },
 
  changeSongByClickNext: function() {
@@ -118,8 +132,10 @@ componentDidMount: function() {
  if(this.state.playlist.length > 0 ) {
   ul =  this.createUl(this.state.playlist)
  }
- 
-  
+  var playlistsNames = '' 
+if(this.state.playlists) {
+   playlistsNames = this.getPlaylistsNames(this.state.playlists);
+}
   return (
     <div>
      <div>
@@ -139,7 +155,11 @@ componentDidMount: function() {
       <p onClick={this.changeSongByClickPrev}>Prev</p>
       <p onClick={this.changeSongByClickNext}>NEXT</p>
 
-
+     <div>
+      <ul>
+       {playlistsNames}
+      </ul>
+     </div>
     </div>
   )
  }
