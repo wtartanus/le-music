@@ -49,7 +49,7 @@
 	var React = __webpack_require__(1);
 	var ReactDom = __webpack_require__(33);
 	var MusicBox = __webpack_require__(170);
-	var LoginBox = __webpack_require__(180);
+	var LoginBox = __webpack_require__(181);
 	
 	window.onload = function () {
 	  ReactDom.render(React.createElement(LoginBox, { url: 'http://localhost:5000/' }), document.getElementById('app'));
@@ -21018,6 +21018,7 @@
 	var AddSongBox = __webpack_require__(171);
 	var SignOut = __webpack_require__(178);
 	var PlayerBox = __webpack_require__(179);
+	var CreatePlayListBox = __webpack_require__(180);
 	
 	var MusicBox = React.createClass({
 	  displayName: 'MusicBox',
@@ -21028,7 +21029,10 @@
 	
 	  sendData: function sendData(url, info) {
 	    var request = new XMLHttpRequest();
-	    request.open("POST", url);
+	    request.open("POST", url + "/songs");
+	    request.setRequestHeader("Content-Type", "application/json");
+	    request.setRequestHeader("Accept", "application/json");
+	    request.withCredentials = true;
 	    request.onload = function () {
 	      if (request.status === 200) {}
 	    };
@@ -21052,11 +21056,12 @@
 	          'h4',
 	          null,
 	          ' Welcome ',
-	          this.state.currentUser
+	          this.state.user.email
 	        ),
 	        React.createElement(SignOut, { url: this.props.url + "users/sign_out.json", onSignOut: this.props.resetUser })
 	      ),
 	      React.createElement(AddSongBox, { sendInfo: this.sendData, url: this.props.url }),
+	      React.createElement(CreatePlayListBox, { url: this.props.url, id: this.state.user.id }),
 	      React.createElement(PlayerBox, { url: this.props.url })
 	    );
 	  }
@@ -21109,11 +21114,13 @@
 	    var file = document.getElementById('file').files[0];
 	
 	    var info = {
-	      artist: artist.value,
-	      album: album.value,
-	      genre: genre.value,
-	      title: title.value,
-	      linkName: file.name
+	      song: {
+	        artist: artist.value,
+	        album: album.value,
+	        genre: genre.value,
+	        title: title.value,
+	        url: "https://s3-eu-west-1.amazonaws.com/lemusic/" + file.name
+	      }
 	    };
 	
 	    console.log(info);
@@ -23087,8 +23094,10 @@
 	  displayName: "PlayerBox",
 	
 	  getInitialState: function getInitialState() {
-	    return { currentSong: null, currentSongIndex: null, currentPlaylist: null, playlists: null,
-	      playlistName: "", playlist: [], songName: "" };
+	    return { currentSong: null, currentSongIndex: null, currentPlaylist: null,
+	      playlists: null,
+	      playlistName: "", playlist: [], songName: "", delete: false,
+	      displaySongs: "" };
 	  },
 	
 	  componentDidMount: function componentDidMount() {
@@ -23100,13 +23109,6 @@
 	      this.changeSong(nextSong);
 	    }.bind(this));
 	  },
-	
-	  // componentWillUpdate: function() {
-	  // if(this.state.playlists && this.state.currentPlaylist) {
-	  //   playListName = this.state.playlists[this.state.currentPlaylist].name
-	  //   playList = this.state.playlists[this.state.currentPlaylist]
-	  // }
-	  // },
 	
 	  nextSong: function nextSong() {
 	    var src = player.childNodes[0];
@@ -23141,27 +23143,29 @@
 	  },
 	
 	  fetchPlaylists: function fetchPlaylists() {
-	    var request = new XMLHttpRequest();
-	    request.open("GET", this.props.url + "/play_lists.json");
-	    request.setRequestHeader("Content-Type", "application/json");
-	    request.withCredentials = true;
-	    request.onload = function () {
-	      if (request.status === 200) {
-	        var playlists = JSON.parse(request.responseText);
-	        this.setState({ playlists: playlists });
-	        this.setState({ currentSongIndex: 0 });
-	        this.setState({ currentSong: playlists[0].songs[0].url });
-	        this.setState({ currentPlaylist: 0 });
-	        this.setState({ playlistName: playlists[0].name });
-	        this.setState({ playlist: playlists[0].songs });
-	        this.setState({ songName: playlists[0].songs[0].title });
-	        var player = document.getElementById('player');
-	        player.load();
-	        player.play();
-	      } else if (request.status === 401) {}
-	    }.bind(this);
+	    setInterval(function () {
+	      var request = new XMLHttpRequest();
+	      request.open("GET", this.props.url + "/play_lists.json");
+	      request.setRequestHeader("Content-Type", "application/json");
+	      request.withCredentials = true;
+	      request.onload = function () {
+	        if (request.status === 200) {
+	          var playlists = JSON.parse(request.responseText);
+	          this.setState({ playlists: playlists });
+	          // this.setState({currentSongIndex: 0});
+	          // this.setState({currentSong: playlists[0].songs[0].url});
+	          // this.setState({currentPlaylist: 0});
+	          // this.setState({playlistName: playlists[0].name});
+	          // this.setState({playlist: playlists[0].songs});
+	          // this.setState({songName: playlists[0].songs[0].title});
+	          var player = document.getElementById('player');
+	          // player.load()
+	          // player.play()
+	        } else if (request.status === 401) {}
+	      }.bind(this);
 	
-	    request.send(null);
+	      request.send(null);
+	    }.bind(this), 900);
 	  },
 	
 	  changeSongByClickName: function changeSongByClickName(e) {
@@ -23188,11 +23192,118 @@
 	    this.setState({ playlistName: this.state.playlists[i].name });
 	  },
 	
+	  handleOver: function handleOver(e) {
+	    var p = document.createElement('p');
+	    p.innerText = "delete";
+	    p.className = "delete-button";
+	
+	    p.addEventListener('click', function (e) {
+	      if (this.state.delete === false) {
+	        e.target.innerText = "DELETE ??";
+	        this.setState({ delete: true });
+	      } else if (this.state.delete === true) {
+	        var index = e.target.parentElement.value;
+	        var id = this.state.playlists[index].id;
+	        var request = new XMLHttpRequest();
+	        request.open("DELETE", this.props.url + "play_lists/" + id);
+	        request.setRequestHeader("Content-Type", "application/json");
+	        request.setRequestHeader("Accept", "application/json");
+	        request.withCredentials = true;
+	        request.onload = function () {
+	          if (request.status === 201) {} else if (request.status === 401) {}
+	        }.bind(this);
+	
+	        request.send(null);
+	      }
+	    }.bind(this));
+	
+	    e.target.className = "playlists-names-list";
+	    e.target.appendChild(p);
+	  },
+	
+	  handleOut: function handleOut(e) {
+	    var child = e.target.childNodes[1];
+	    e.target.className = "";
+	    e.target.removeChild(child);
+	    this.setState({ delete: false });
+	  },
+	
+	  allowDrag: function allowDrag(e) {
+	    e.preventDefault();
+	  },
+	
+	  handleDrop: function handleDrop(e) {
+	    e.preventDefault();
+	    var songId = e.dataTransfer.getData("text");
+	    var playListId = this.state.playlists[e.target.value].id;
+	    var song = this.state.playlists[0].songs[songId];
+	    var data = {
+	      song: {
+	        artist: song.artist,
+	        album: song.album,
+	        genre: song.genre,
+	        title: song.title,
+	        url: song.url,
+	        play_list_id: playListId
+	      }
+	    };
+	
+	    var request = new XMLHttpRequest();
+	    request.open("POST", this.props.url + "/songs");
+	    request.setRequestHeader("Content-Type", "application/json");
+	    request.setRequestHeader("Accept", "application/json");
+	    request.withCredentials = true;
+	    request.onload = function () {
+	      if (request.status === 201) {} else if (request.status === 401) {}
+	    }.bind(this);
+	
+	    request.send(JSON.stringify(data));
+	  },
+	
+	  deleteSongFromPlaylist: function deleteSongFromPlaylist(e) {
+	    console.log("", e.target.value);
+	    var request = new XMLHttpRequest();
+	    request.open("DELETE", this.props.url + "/songs/" + e.target.value);
+	    request.setRequestHeader("Content-Type", "application/json");
+	    request.setRequestHeader("Accept", "application/json");
+	    request.withCredentials = true;
+	    request.onload = function () {
+	      if (request.status === 201) {} else if (request.status === 401) {}
+	    }.bind(this);
+	    request.send(null);
+	
+	    var newState = this.state.displaySongs.filter(function (song) {
+	      if (song.key != e.target.value) {
+	        return song;
+	      }
+	    });
+	
+	    console.log(newState);
+	
+	    this.setState({ displaySongs: newState });
+	  },
+	
+	  displaySongs: function displaySongs(e) {
+	    var songs = this.state.playlists[e.target.value].songs;
+	    var songs = songs.map(function (song) {
+	      return React.createElement(
+	        "li",
+	        { value: song.id, key: song.id, onDoubleClick: this.deleteSongFromPlaylist },
+	        song.title
+	      );
+	    }.bind(this));
+	
+	    this.setState({ displaySongs: songs });
+	    var ul = document.getElementsByClassName('pop-up-playlist')[0];
+	    ul.className = "pop-up-playlist-show";
+	  },
+	
 	  getPlaylistsNames: function getPlaylistsNames(playlists) {
 	    var list = playlists.map(function (playlist, index) {
 	      return React.createElement(
 	        "li",
-	        { key: playlist.name, onClick: this.changePlayList, value: index },
+	        { key: playlist.name, onDoubleClick: this.changePlayList, onMouseEnter: this.handleOver, onMouseLeave: this.handleOut, value: index,
+	          onDragOver: this.allowDrag, onDrop: this.handleDrop, onClick: this.displaySongs },
 	        playlist.name
 	      );
 	    }.bind(this));
@@ -23209,6 +23320,16 @@
 	    this.changeSong(index);
 	  },
 	
+	  handleDragStart: function handleDragStart(e) {
+	    e.dataTransfer.setData("text", e.target.value);
+	    console.log(e.target.value);
+	  },
+	
+	  hideDisplaySongs: function hideDisplaySongs(e) {
+	    var element = document.getElementsByClassName("pop-up-playlist-show")[0];
+	    element.className = "pop-up-playlist";
+	  },
+	
 	  render: function render() {
 	    var ul = '';
 	    if (this.state.playlist.length > 0) {
@@ -23217,6 +23338,22 @@
 	    var playlistsNames = '';
 	    if (this.state.playlists) {
 	      playlistsNames = this.getPlaylistsNames(this.state.playlists);
+	    }
+	
+	    var allSongs = "";
+	    if (this.state.playlists) {
+	      for (var i = this.state.playlists.length - 1; i >= 0; i--) {
+	        if (this.state.playlists[i].name === "all songs") {
+	          allSongs = this.state.playlists[i].songs.map(function (song, index) {
+	            return React.createElement(
+	              "li",
+	              { value: index, key: index * .2, draggable: "true",
+	                onDragStart: this.handleDragStart },
+	              song.title
+	            );
+	          }.bind(this));
+	        }
+	      }
 	    }
 	    return React.createElement(
 	      "div",
@@ -23263,11 +23400,26 @@
 	      ),
 	      React.createElement(
 	        "div",
-	        null,
+	        { id: "playlists-names" },
 	        React.createElement(
 	          "ul",
 	          null,
 	          playlistsNames
+	        ),
+	        React.createElement(
+	          "ul",
+	          { className: "pop-up-playlist" },
+	          this.state.displaySongs,
+	          React.createElement(
+	            "p",
+	            { onClick: this.hideDisplaySongs },
+	            "close"
+	          )
+	        ),
+	        React.createElement(
+	          "ul",
+	          null,
+	          allSongs
 	        )
 	      )
 	    );
@@ -23280,12 +23432,65 @@
 /* 180 */
 /***/ function(module, exports, __webpack_require__) {
 
+	"use strict";
+	
+	var React = __webpack_require__(1);
+	
+	var CreatePlayListBox = React.createClass({
+	  displayName: "CreatePlayListBox",
+	
+	  handleSubmit: function handleSubmit(e) {
+	    e.preventDefault();
+	    var value = e.target.childNodes[0].value;
+	    e.target.childNodes[0].value = "";
+	    var data = {
+	      playlist: {
+	        id: this.props.id,
+	        name: value
+	      }
+	    };
+	    this.sendPlayList(this.props.url, data);
+	  },
+	
+	  sendPlayList: function sendPlayList(url, data) {
+	    var request = new XMLHttpRequest();
+	    request.open("POST", this.props.url + "play_lists");
+	    request.setRequestHeader("Content-Type", "application/json");
+	    request.setRequestHeader("Accept", "application/json");
+	    request.withCredentials = true;
+	    request.onload = function () {
+	      if (request.status === 201) {} else if (request.status === 401) {}
+	    }.bind(this);
+	
+	    request.send(JSON.stringify(data));
+	  },
+	
+	  render: function render() {
+	    return React.createElement(
+	      "form",
+	      { onSubmit: this.handleSubmit },
+	      React.createElement("input", { type: "text", placeholder: "Name" }),
+	      React.createElement(
+	        "button",
+	        { type: "submit" },
+	        "Create PlayList"
+	      )
+	    );
+	  }
+	});
+	
+	module.exports = CreatePlayListBox;
+
+/***/ },
+/* 181 */
+/***/ function(module, exports, __webpack_require__) {
+
 	'use strict';
 	
 	var React = __webpack_require__(1);
-	var SignIn = __webpack_require__(181);
+	var SignIn = __webpack_require__(182);
 	var SignOut = __webpack_require__(178);
-	var SignUp = __webpack_require__(186);
+	var SignUp = __webpack_require__(187);
 	var MusicBox = __webpack_require__(170);
 	
 	var LoginBox = React.createClass({
@@ -23331,13 +23536,13 @@
 	module.exports = LoginBox;
 
 /***/ },
-/* 181 */
+/* 182 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
 	
 	var React = __webpack_require__(1);
-	var LinkedStateMixin = __webpack_require__(182);
+	var LinkedStateMixin = __webpack_require__(183);
 	
 	var SignIn = React.createClass({
 	  displayName: 'SignIn',
@@ -23388,15 +23593,15 @@
 	module.exports = SignIn;
 
 /***/ },
-/* 182 */
+/* 183 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
 	
-	module.exports = __webpack_require__(183);
+	module.exports = __webpack_require__(184);
 
 /***/ },
-/* 183 */
+/* 184 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/**
@@ -23412,8 +23617,8 @@
 	
 	'use strict';
 	
-	var ReactLink = __webpack_require__(184);
-	var ReactStateSetters = __webpack_require__(185);
+	var ReactLink = __webpack_require__(185);
+	var ReactStateSetters = __webpack_require__(186);
 	
 	/**
 	 * A simple mixin around ReactLink.forState().
@@ -23437,7 +23642,7 @@
 	module.exports = LinkedStateMixin;
 
 /***/ },
-/* 184 */
+/* 185 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/**
@@ -23513,7 +23718,7 @@
 	module.exports = ReactLink;
 
 /***/ },
-/* 185 */
+/* 186 */
 /***/ function(module, exports) {
 
 	/**
@@ -23622,13 +23827,13 @@
 	module.exports = ReactStateSetters;
 
 /***/ },
-/* 186 */
+/* 187 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
 	
 	var React = __webpack_require__(1);
-	var LinkedStateMixin = __webpack_require__(182);
+	var LinkedStateMixin = __webpack_require__(183);
 	
 	var SignUp = React.createClass({
 	  displayName: 'SignUp',

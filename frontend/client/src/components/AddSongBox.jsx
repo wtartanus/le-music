@@ -36,11 +36,13 @@ var AddSongBox = React.createClass({
    var file = document.getElementById('file').files[0];
 
    var info = {
+    song:{
     artist: artist.value,
     album: album.value,
     genre: genre.value,
     title: title.value,
-    linkName: file.name
+    url: "https://s3-eu-west-1.amazonaws.com/lemusic/" + file.name
+      }
    }
 
    console.log(info)

@@ -10,7 +10,7 @@ var SignIn = React.createClass({
 
   signIn: function(e) {
    e.preventDefault();
-   var request = new XMLHttpRequest();
+    var request = new XMLHttpRequest();
    request.open("POST",this.props.url);
    request.setRequestHeader("Content-Type", "application/json");
    request.withCredentials = true;
@@ -30,6 +30,7 @@ var SignIn = React.createClass({
     }
     }
     request.send(JSON.stringify( data ));
+    
   },
 
   render: function() {

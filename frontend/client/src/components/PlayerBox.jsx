@@ -6,8 +6,10 @@ var React = require('react');
 var PlayerBox = React.createClass({
 getInitialState: function() {
   return (
-  {currentSong: null , currentSongIndex: null, currentPlaylist: null, playlists: null,
-   playlistName: "", playlist: [], songName: ""}
+  {currentSong: null , currentSongIndex: null, currentPlaylist: null, 
+    playlists: null,
+   playlistName: "", playlist: [], songName: "", delete: false,
+   displaySongs: ""}
   )
  },
 
@@ -22,12 +24,6 @@ componentDidMount: function() {
 
   },
 
-  // componentWillUpdate: function() {
-  // if(this.state.playlists && this.state.currentPlaylist) {
-  //   playListName = this.state.playlists[this.state.currentPlaylist].name
-  //   playList = this.state.playlists[this.state.currentPlaylist]
-  // }
-  // },
 
   nextSong: function() {
      var src = player.childNodes[0]
@@ -62,6 +58,7 @@ componentDidMount: function() {
   },
 
   fetchPlaylists: function() {
+    setInterval(function() {
     var request = new XMLHttpRequest();
     request.open("GET", this.props.url + "/play_lists.json")
     request.setRequestHeader("Content-Type", "application/json");
@@ -70,21 +67,22 @@ componentDidMount: function() {
      if(request.status === 200 ) {
        var playlists = JSON.parse(request.responseText);
        this.setState({playlists: playlists});
-       this.setState({currentSongIndex: 0});
-       this.setState({currentSong: playlists[0].songs[0].url});
-       this.setState({currentPlaylist: 0});
-       this.setState({playlistName: playlists[0].name});
-       this.setState({playlist: playlists[0].songs});
-       this.setState({songName: playlists[0].songs[0].title});
+       // this.setState({currentSongIndex: 0});
+       // this.setState({currentSong: playlists[0].songs[0].url});
+       // this.setState({currentPlaylist: 0});
+       // this.setState({playlistName: playlists[0].name});
+       // this.setState({playlist: playlists[0].songs});
+       // this.setState({songName: playlists[0].songs[0].title});
        var player = document.getElementById('player');
-       player.load()
-       player.play()
+       // player.load()
+       // player.play()
      } else if ( request.status === 401 ) {
   
      }  
     }.bind(this)
     
      request.send(null);
+     }.bind(this), 900);
   },
 
   changeSongByClickName: function(e) {
@@ -106,9 +104,128 @@ componentDidMount: function() {
    this.setState({playlistName: this.state.playlists[i].name });
  },
 
+ handleOver: function(e) {
+    var p = document.createElement('p');
+    p.innerText = "delete";
+    p.className = "delete-button"
+
+    p.addEventListener('click', function(e) {
+      if(this.state.delete === false) {
+        e.target.innerText = "DELETE ??"
+        this.setState({delete: true});
+      } else if( this.state.delete === true ) {
+          var index = e.target.parentElement.value;
+          var id = this.state.playlists[index].id
+          var request = new XMLHttpRequest();
+          request.open("DELETE",this.props.url +"play_lists/" + id);
+          request.setRequestHeader("Content-Type", "application/json");
+          request.setRequestHeader("Accept", "application/json")
+          request.withCredentials = true;
+          request.onload = function() {
+           if(request.status === 201 ) {
+           
+           } else if ( request.status === 401 ) {
+
+           }
+          }.bind(this)
+          
+           request.send(null);
+
+     }
+    }.bind(this))
+
+    e.target.className = "playlists-names-list"
+    e.target.appendChild(p);
+
+ },
+
+ handleOut: function(e) {
+   var child = e.target.childNodes[1]
+   e.target.className = ""
+   e.target.removeChild(child);
+   this.setState({delete: false})
+ },
+
+ allowDrag: function(e) {
+   e.preventDefault();
+ },
+
+ handleDrop: function(e) {
+  e.preventDefault();
+  var songId = e.dataTransfer.getData("text");
+  var playListId = this.state.playlists[e.target.value].id;
+  var song = this.state.playlists[0].songs[songId]
+  var data = {
+   song:{
+     artist: song.artist,
+     album: song.album,
+     genre: song.genre,
+     title: song.title,
+     url: song.url,
+     play_list_id: playListId
+   }
+  }
+
+  var request = new XMLHttpRequest();
+  request.open("POST",this.props.url + "/songs");
+  request.setRequestHeader("Content-Type", "application/json");
+  request.setRequestHeader("Accept", "application/json")
+  request.withCredentials = true;
+  request.onload = function() {
+   if(request.status === 201 ) {
+   
+   } else if ( request.status === 401 ) {
+
+   }
+  }.bind(this)
+  
+   request.send(JSON.stringify( data ));
+   
+ },
+
+ deleteSongFromPlaylist: function(e) {
+   console.log("",e.target.value)
+   var request = new XMLHttpRequest();
+   request.open("DELETE",this.props.url + "/songs/" + e.target.value);
+   request.setRequestHeader("Content-Type", "application/json");
+   request.setRequestHeader("Accept", "application/json")
+   request.withCredentials = true;
+   request.onload = function() {
+    if(request.status === 201 ) {
+    
+    } else if ( request.status === 401 ) {
+
+    }
+   }.bind(this)
+   request.send(null);
+
+   var newState = this.state.displaySongs.filter(function(song) {
+     if(song.key != e.target.value ) {
+      return song
+     }
+   })
+
+   console.log(newState)
+
+   this.setState({displaySongs: newState});
+
+ },
+
+ displaySongs: function(e) {
+  var songs = this.state.playlists[e.target.value].songs
+  var songs = songs.map(function(song) {
+    return <li value={song.id} key={song.id} onDoubleClick={this.deleteSongFromPlaylist}>{song.title}</li>
+  }.bind(this))
+ 
+  this.setState({displaySongs: songs});
+  var ul = document.getElementsByClassName('pop-up-playlist')[0];
+  ul.className = "pop-up-playlist-show"
+ },
+
  getPlaylistsNames: function(playlists) {
    var list = playlists.map(function(playlist,index) {
-     return <li key={playlist.name} onClick={this.changePlayList} value={index}>
+     return <li key={playlist.name} onDoubleClick={this.changePlayList} onMouseEnter={this.handleOver} onMouseLeave={this.handleOut} value={index} 
+     onDragOver={this.allowDrag} onDrop={this.handleDrop} onClick={this.displaySongs}>
      {playlist.name}</li>
 
    }.bind(this));
@@ -125,7 +242,15 @@ componentDidMount: function() {
    this.changeSong(index);
  },
 
+ handleDragStart: function(e) {
+  e.dataTransfer.setData("text", e.target.value);
+  console.log(e.target.value)
+ },
 
+ hideDisplaySongs: function(e) {
+   var element = document.getElementsByClassName("pop-up-playlist-show")[0]
+   element.className = "pop-up-playlist";
+ },
 
  render: function() {
  var ul = ''
@@ -133,9 +258,21 @@ componentDidMount: function() {
   ul =  this.createUl(this.state.playlist)
  }
   var playlistsNames = '' 
-if(this.state.playlists) {
+  if(this.state.playlists) {
    playlistsNames = this.getPlaylistsNames(this.state.playlists);
 }
+
+var allSongs = ""
+ if(this.state.playlists) {
+  for (var i = this.state.playlists.length - 1; i >= 0; i--) {
+    if(this.state.playlists[i].name === "all songs") {
+      allSongs = this.state.playlists[i].songs.map(function (song,index) {
+        return <li value={index} key={index * .2} draggable="true" 
+        onDragStart={this.handleDragStart}>{song.title}</li>
+      }.bind(this));
+    }
+  }
+ }
   return (
     <div>
      <div>
@@ -155,9 +292,16 @@ if(this.state.playlists) {
       <p onClick={this.changeSongByClickPrev}>Prev</p>
       <p onClick={this.changeSongByClickNext}>NEXT</p>
 
-     <div>
+     <div id="playlists-names">
       <ul>
        {playlistsNames}
+      </ul>
+      <ul className="pop-up-playlist">
+      {this.state.displaySongs}
+      <p onClick={this.hideDisplaySongs}>close</p>
+      </ul>
+      <ul>
+      {allSongs}
       </ul>
      </div>
     </div>

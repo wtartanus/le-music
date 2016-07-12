@@ -6,3 +6,28 @@
   visibility: hidden;
 }
 
+.playlists-names-list {
+  border: 1px solid black;
+  margin-bottom: 5px;
+  height: 45px;
+}
+
+.delete-button {
+  font-size: .7em;
+  color: red;
+  margin-top: 2px;
+}
+
+.pop-up-playlist {
+  display: none;
+}
+
+.pop-up-playlist-show {
+  display: initial;
+  border: 1px solid blue;
+  position: absolute;
+  z-index: 10000;
+  color: white;
+  background-color: gray;
+}
+
