@@ -23079,39 +23079,68 @@
 /* 179 */
 /***/ function(module, exports, __webpack_require__) {
 
-	'use strict';
+	"use strict";
 	
 	var React = __webpack_require__(1);
 	
 	var PlayerBox = React.createClass({
-	  displayName: 'PlayerBox',
+	  displayName: "PlayerBox",
 	
 	  getInitialState: function getInitialState() {
-	    return { currentSong: null, currentSongIndex: null, currentPlaylist: null, playlists: null };
+	    return { currentSong: null, currentSongIndex: null, currentPlaylist: null, playlists: null,
+	      playlistName: "", playlist: [], songName: "" };
 	  },
 	
 	  componentDidMount: function componentDidMount() {
 	
-	    this.we();
+	    this.fetchPlaylists();
 	    var player = document.getElementById('player');
-	    var src = player.childNodes[0];
 	    player.addEventListener('ended', function () {
-	      var size = this.state.playlists[this.state.currentPlaylist].songs.length;
-	      console.log(size);
-	      var i = this.state.currentSongIndex;
-	      i += 1;
-	      if (i === size) {
-	        i = 0;
-	      }
-	      this.setState({ currentSongIndex: i });
-	      var song = this.state.playlists[this.state.currentPlaylist].songs[i].url;
-	      this.setState({ currentSong: song });
-	      player.load();
-	      player.play();
+	      var nextSong = this.nextSong();
+	      this.changeSong(nextSong);
 	    }.bind(this));
 	  },
 	
-	  we: function we() {
+	  componentWillUpdate: function componentWillUpdate() {
+	    if (this.state.playlists && this.state.currentPlaylist) {
+	      playListName = this.state.playlists[this.state.currentPlaylist].name;
+	      playList = this.state.playlists[this.state.currentPlaylist];
+	    }
+	  },
+	
+	  nextSong: function nextSong() {
+	    var src = player.childNodes[0];
+	    var size = this.state.playlists[this.state.currentPlaylist].songs.length;
+	    var i = this.state.currentSongIndex;
+	    i += 1;
+	    if (i === size) {
+	      i = 0;
+	    }
+	    return i;
+	  },
+	
+	  previousSong: function previousSong() {
+	    var src = player.childNodes[0];
+	    var size = this.state.playlists[this.state.currentPlaylist].songs.length;
+	    var i = this.state.currentSongIndex;
+	    i -= 1;
+	    if (i < 0) {
+	      i = size - 1;
+	    }
+	
+	    return i;
+	  },
+	
+	  changeSong: function changeSong(i) {
+	    this.setState({ currentSongIndex: i });
+	    var song = this.state.playlists[this.state.currentPlaylist].songs[i].url;
+	    this.setState({ currentSong: song });
+	    this.setState({ songName: this.state.playlists[this.state.currentPlaylist].songs[i].title });
+	    player.load();
+	    player.play();
+	  },
+	
+	  fetchPlaylists: function fetchPlaylists() {
 	    console.log("hi");
 	    var request = new XMLHttpRequest();
 	    request.open("GET", this.props.url + "/play_lists.json");
@@ -23125,6 +23154,9 @@
 	        this.setState({ currentSongIndex: 0 });
 	        this.setState({ currentSong: playlists[0].songs[0].url });
 	        this.setState({ currentPlaylist: 0 });
+	        this.setState({ playlistName: playlists[0].name });
+	        this.setState({ playlist: playlists[0].songs });
+	        this.setState({ songName: playlists[0].songs[0].title });
 	        var player = document.getElementById('player');
 	        player.load();
 	        player.play();
@@ -23136,20 +23168,81 @@
 	    request.send(null);
 	  },
 	
+	  changeSongByClickName: function changeSongByClickName(e) {
+	    this.changeSong(e.target.value);
+	  },
+	
+	  createUl: function createUl(array) {
+	    var list = array.map(function (song, index) {
+	      return React.createElement(
+	        "li",
+	        { key: index, value: index, onClick: this.changeSongByClickName },
+	        " ",
+	        song.title,
+	        " "
+	      );
+	    }.bind(this));
+	    return list;
+	  },
+	
+	  changeSongByClickNext: function changeSongByClickNext() {
+	    var index = this.nextSong();
+	    this.changeSong(index);
+	  },
+	
+	  changeSongByClickPrev: function changeSongByClickPrev() {
+	    var index = this.previousSong();
+	    this.changeSong(index);
+	  },
+	
 	  render: function render() {
+	    var ul = '';
+	    if (this.state.playlist.length > 0) {
+	      ul = this.createUl(this.state.playlist);
+	    }
+	
 	    return React.createElement(
-	      'div',
+	      "div",
 	      null,
 	      React.createElement(
-	        'h3',
+	        "div",
 	        null,
-	        'Player Box'
+	        React.createElement(
+	          "h4",
+	          null,
+	          this.state.playlistName
+	        ),
+	        React.createElement(
+	          "ul",
+	          null,
+	          ul
+	        )
 	      ),
 	      React.createElement(
-	        'audio',
-	        { controls: true, preload: 'auto', id: 'player' },
-	        React.createElement('source', { src: this.state.currentSong }),
-	        'Your browser does not support the audio element.'
+	        "h3",
+	        null,
+	        "Player Box"
+	      ),
+	      React.createElement(
+	        "p",
+	        null,
+	        this.state.songName
+	      ),
+	      React.createElement(
+	        "audio",
+	        { controls: true, preload: "auto", id: "player" },
+	        React.createElement("source", { src: this.state.currentSong }),
+	        "Your browser does not support the audio element."
+	      ),
+	      React.createElement(
+	        "p",
+	        { onClick: this.changeSongByClickPrev },
+	        "Prev"
+	      ),
+	      React.createElement(
+	        "p",
+	        { onClick: this.changeSongByClickNext },
+	        "NEXT"
 	      )
 	    );
 	  }
