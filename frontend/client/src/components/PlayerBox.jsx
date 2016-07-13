@@ -3,6 +3,7 @@ var React = require('react');
 
 
 
+
 var PlayerBox = React.createClass({
 getInitialState: function() {
   return (
@@ -223,13 +224,15 @@ componentDidMount: function() {
  },
 
  getPlaylistsNames: function(playlists) {
-   var list = playlists.map(function(playlist,index) {
+  
+
+   var list = playlists.map(function(playlist,index) { 
      return <li key={playlist.name} onDoubleClick={this.changePlayList} onMouseEnter={this.handleOver} onMouseLeave={this.handleOut} value={index} 
      onDragOver={this.allowDrag} onDrop={this.handleDrop} onClick={this.displaySongs}>
      {playlist.name}</li>
 
    }.bind(this));
-   return list
+   return list;
  },
 
  changeSongByClickNext: function() {
@@ -275,13 +278,12 @@ var allSongs = ""
  }
   return (
     <div>
-     <div>
+     <div id="current-playlist-container">
        <h4>{this.state.playlistName}</h4>
        <ul>{ul}</ul>
         
      </div>
-      <h3>Player Box</h3>
-      <p>{this.state.songName}</p>
+      <p id="current-song">{this.state.songName}</p>
       <audio controls preload="auto" id="player">
       
         <source src={this.state.currentSong}/>
@@ -289,20 +291,24 @@ var allSongs = ""
       Your browser does not support the audio element.
      
       </audio>
-      <p onClick={this.changeSongByClickPrev}>Prev</p>
-      <p onClick={this.changeSongByClickNext}>NEXT</p>
+      <p id="prev" onClick={this.changeSongByClickPrev}>&laquo;</p>
+      <p id="next" onClick={this.changeSongByClickNext}>&raquo;</p>
 
      <div id="playlists-names">
-      <ul>
+      <ul id="plalists-names-ul">
        {playlistsNames}
       </ul>
-      <ul className="pop-up-playlist">
-      {this.state.displaySongs}
-      <p onClick={this.hideDisplaySongs}>close</p>
-      </ul>
-      <ul>
-      {allSongs}
-      </ul>
+      <div id="right-playlists">
+        <h3 id="playlists-names-text">Playlists</h3>
+          <ul className="pop-up-playlist">
+          {this.state.displaySongs}
+          <p id="close-button" onClick={this.hideDisplaySongs}>close</p>
+          </ul>
+          <h3 id="all-songs-text">All songs</h3>
+          <ul id="all-songs-list">
+          {allSongs}
+          </ul>
+     </div>
      </div>
     </div>
   )

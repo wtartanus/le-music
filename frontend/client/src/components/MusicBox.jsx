@@ -26,14 +26,12 @@ var MusicBox = React.createClass({
 
   render: function() {
     return (
-      <div>
-        <h1>MusicBox</h1>
-        <div>
-         <h4> Welcome {this.state.user.email}</h4>
-         <SignOut url={this.props.url + "users/sign_out.json"} onSignOut={this.props.resetUser}></SignOut>
-        </div>
-        <AddSongBox sendInfo={this.sendData} url={this.props.url} />
+      <div id="app-box">
+        <h1 id="email">{this.state.user.email}</h1>
+        <SignOut url={this.props.url + "users/sign_out.json"} onSignOut={this.props.resetUser}></SignOut>
         <CreatePlayListBox url={this.props.url} id={this.state.user.id}/>
+        <AddSongBox sendInfo={this.sendData} url={this.props.url} />
+       
         <PlayerBox url={this.props.url}/>
       </div>
       )

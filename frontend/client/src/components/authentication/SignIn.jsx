@@ -35,7 +35,7 @@ var SignIn = React.createClass({
 
   render: function() {
     return (
-      <form onSubmit={this.signIn}>
+      <form id="sign-in" onSubmit={this.signIn}>
         <input type='text' valueLink={this.linkState('email')} placeholder="Email"/>
         <input type="password" valueLink={this.linkState('password')} placeholder="Password" />
         <button>  Sign In </button>

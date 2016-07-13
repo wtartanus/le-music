@@ -20,7 +20,7 @@ var SignOut = React.createClass({
 
   render: function() {
     return (
-      <button onClick={this.signOut}>Sign Out</button>
+      <button id="sign-out" onClick={this.signOut}>Sign Out</button>
       )
   }
 });

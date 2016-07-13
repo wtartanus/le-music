@@ -5,7 +5,7 @@ AWS.config.update({accessKeyId: 'AKIAIVWTTSSQEUIGTDZA', secretAccessKey: 'aMHzZM
 
 var AddSongBox = React.createClass({
   getInitialState: function() {
-    return { progress: ""}
+    return { progress: "", show: false}
   },
 
   handleSubmit: function(e) {
@@ -51,23 +51,34 @@ var AddSongBox = React.createClass({
 
   },
 
+  showHideForm: function() {
+    console.log("hi")
+    var form = document.getElementById('add-song');
+    if(this.state.show) {
+      form.style.display = "none"
+      this.setState({show: false})
+      return;
+    }
+    form.style.display = "initial"
+    this.setState({show: true})
+  },
+
   render: function() {
     return (
-      <div>
-        <form id="add-song" encType="multipart/form-data" onSubmit={this.handleSubmit}>
-          <input type="file" id="file" name="name" />
-          <label htmlFor="artist">Artist:</label>
-          <input type="text" id="artist" name="artist" />
-          <label htmlFor="album">Album:</label>
-          <input type="text" id="album" name="album" />
-          <label htmlFor="genret">Genre:</label>
-          <input type="text" id="genre" name="genre" />
-          <label htmlFor="title">Title:</label>
-          <input type="text" id="title" name="title" />
-          <button type="submit">Add Song</button>
-        </form>
-        <div id="display-progress">
-          {this.state.progress} 
+      <div id="add-song-container">
+       <h3 id="add-song-text" onClick={this.showHideForm}>Add Song</h3>
+        <div id="add-song">
+            <form  encType="multipart/form-data" onSubmit={this.handleSubmit}>
+              <input type="file" id="file" name="name" />
+              <input type="text" id="artist" name="artist" placeholder="Artist" />
+              <input type="text" id="album" name="album" placeholder="Album"/>
+              <input type="text" id="genre" name="genre" placeholder="Genre" />
+              <input type="text" id="title" name="title" placeholder="Title" />
+              <button type="submit">Add Song</button>
+            </form>
+            <div id="display-progress">
+              {this.state.progress} 
+            </div>
         </div>
       </div>
       )

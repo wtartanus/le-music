@@ -1,6 +1,10 @@
 var React = require('react');
 
 var CreatePlayListBox = React.createClass({
+  getInitialState: function() {
+    return {show: false}
+  },
+
   handleSubmit: function(e) {
     e.preventDefault();
     var value = e.target.childNodes[0].value
@@ -32,12 +36,26 @@ var CreatePlayListBox = React.createClass({
 
   },
 
+  showHideForm: function() {
+    var form = document.getElementById('create-playlist-form');
+    if(this.state.show) {
+      form.style.display = "none"
+      this.setState({show: false})
+      return;
+    }
+    form.style.display = "initial"
+    this.setState({show: true})
+  },
+
   render: function() {
     return (
-      <form onSubmit={this.handleSubmit}>
+     <div id="create-playlist-container">
+      <h3 id="create-playlist-text" onClick={this.showHideForm}>Create PlayList</h3>
+      <form id="create-playlist-form" onSubmit={this.handleSubmit}>
        <input type="text" placeholder="Name" />
        <button type="submit">Create PlayList</button>
       </form>
+      </div>
       )
   }
 });
