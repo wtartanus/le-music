@@ -1,7 +1,7 @@
 var React = require('react');
 require('../../node_modules/aws-sdk/dist/aws-sdk');
 var AWS = window.AWS;
-AWS.config.update({accessKeyId: 'AKIAIVWTTSSQEUIGTDZA', secretAccessKey: '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'});
+AWS.config.update({accessKeyId: 'hello', secretAccessKey: 'hello'});
 
 var AddSongBox = React.createClass({
   getInitialState: function() {

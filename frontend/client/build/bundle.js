@@ -49,7 +49,7 @@
 	var React = __webpack_require__(1);
 	var ReactDom = __webpack_require__(33);
 	var MusicBox = __webpack_require__(170);
-	var LoginBox = __webpack_require__(182);
+	var LoginBox = __webpack_require__(181);
 	
 	window.onload = function () {
 	  ReactDom.render(React.createElement(LoginBox, { url: 'http://localhost:5000/' }), document.getElementById('app'));
@@ -21018,7 +21018,7 @@
 	var AddSongBox = __webpack_require__(171);
 	var SignOut = __webpack_require__(178);
 	var PlayerBox = __webpack_require__(179);
-	var CreatePlayListBox = __webpack_require__(181);
+	var CreatePlayListBox = __webpack_require__(180);
 	
 	var MusicBox = React.createClass({
 	  displayName: 'MusicBox',
@@ -23430,8 +23430,7 @@
 	module.exports = PlayerBox;
 
 /***/ },
-/* 180 */,
-/* 181 */
+/* 180 */
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
@@ -23508,15 +23507,15 @@
 	module.exports = CreatePlayListBox;
 
 /***/ },
-/* 182 */
+/* 181 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
 	
 	var React = __webpack_require__(1);
-	var SignIn = __webpack_require__(183);
+	var SignIn = __webpack_require__(182);
 	var SignOut = __webpack_require__(178);
-	var SignUp = __webpack_require__(188);
+	var SignUp = __webpack_require__(187);
 	var MusicBox = __webpack_require__(170);
 	
 	var LoginBox = React.createClass({
@@ -23592,13 +23591,13 @@
 	module.exports = LoginBox;
 
 /***/ },
-/* 183 */
+/* 182 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
 	
 	var React = __webpack_require__(1);
-	var LinkedStateMixin = __webpack_require__(184);
+	var LinkedStateMixin = __webpack_require__(183);
 	
 	var SignIn = React.createClass({
 	  displayName: 'SignIn',
@@ -23649,15 +23648,15 @@
 	module.exports = SignIn;
 
 /***/ },
-/* 184 */
+/* 183 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
 	
-	module.exports = __webpack_require__(185);
+	module.exports = __webpack_require__(184);
 
 /***/ },
-/* 185 */
+/* 184 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/**
@@ -23673,8 +23672,8 @@
 	
 	'use strict';
 	
-	var ReactLink = __webpack_require__(186);
-	var ReactStateSetters = __webpack_require__(187);
+	var ReactLink = __webpack_require__(185);
+	var ReactStateSetters = __webpack_require__(186);
 	
 	/**
 	 * A simple mixin around ReactLink.forState().
@@ -23698,7 +23697,7 @@
 	module.exports = LinkedStateMixin;
 
 /***/ },
-/* 186 */
+/* 185 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/**
@@ -23774,7 +23773,7 @@
 	module.exports = ReactLink;
 
 /***/ },
-/* 187 */
+/* 186 */
 /***/ function(module, exports) {
 
 	/**
@@ -23883,13 +23882,13 @@
 	module.exports = ReactStateSetters;
 
 /***/ },
-/* 188 */
+/* 187 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
 	
 	var React = __webpack_require__(1);
-	var LinkedStateMixin = __webpack_require__(184);
+	var LinkedStateMixin = __webpack_require__(183);
 	
 	var SignUp = React.createClass({
 	  displayName: 'SignUp',
