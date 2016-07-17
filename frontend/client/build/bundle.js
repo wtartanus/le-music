@@ -21068,7 +21068,7 @@
 	var React = __webpack_require__(1);
 	__webpack_require__(172);
 	var AWS = window.AWS;
-	AWS.config.update({ accessKeyId: 'AKIAIVWTTSSQEUIGTDZA', secretAccessKey: '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' });
+	AWS.config.update({ accessKeyId: 'hello', secretAccessKey: 'hello' });
 	
 	var AddSongBox = React.createClass({
 	  displayName: 'AddSongBox',
